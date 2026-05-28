@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DIGI Campaign Generator</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { height: 100%; }
+body { 
+  font-family: 'Segoe UI', Arial, sans-serif; 
+  background: linear-gradient(135deg, #0f1419 0%, #1a1f2e 100%);
+  color: #fff; 
+  padding: 20px; 
+  direction: rtl;
+  min-height: 100vh;
+}
+
+.login-container { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+.login-box { background: #1a1f2e; padding: 60px 40px; border-radius: 16px; border: 1px solid #333; max-width: 420px; width: 100%; text-align: center; }
+.login-header { background: linear-gradient(135deg, #9E8DA7 0%, #6B5B7E 100%); padding: 30px; border-radius: 12px; margin-bottom: 30px; }
+.login-header h1 { font-size: 32px; margin-bottom: 10px; }
+.login-form { display: flex; flex-direction: column; }
+.login-form input { padding: 14px; background: #222; border: 2px solid #333; color: #fff; border-radius: 8px; margin-bottom: 20px; }
+.login-form button { padding: 14px; background: linear-gradient(135deg, #9E8DA7 0%, #6B5B7E 100%); color: #fff; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; }
+#loginError { display: none; color: #ff6b6b; margin-bottom: 20px; }
+
+.container { max-width: 1200px; margin: 0 auto; }
+.header { background: linear-gradient(135deg, #9E8DA7 0%, #6B5B7E 100%); padding: 30px; border-radius: 12px; margin-bottom: 30px; text-align: center; }
+.form-container { background: #1a1f2e; padding: 30px; border-radius: 12px; margin-bottom: 30px; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+.form-row.full { grid-template-columns: 1fr; }
+.form-group label { display: block; margin-bottom: 10px; color: #9E8DA7; font-weight: 600; }
+.form-group input, .form-group select, .form-group textarea { width: 100%; padding: 12px; background: #222; border: 2px solid #333; color: #fff; border-radius: 8px; }
+.form-group textarea { resize: vertical; min-height: 100px; }
+
+.alert { padding: 15px; border-radius: 8px; margin-bottom: 20px; display: none; }
+.alert.success { background: #2d5016; color: #90EE90; }
+.alert.error { background: #5d1f1a; color: #ff6b6b; }
+
+.btn-primary { width: 100%; padding: 16px; background: linear-gradient(135deg, #9E8DA7 0%, #6B5B7E 100%); color: #fff; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; }
+.btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.results { display: none; background: #1a1f2e; padding: 30px; border-radius: 12px; }
+.results.show { display: block; }
+
+.tabs { display: flex; gap: 10px; margin-bottom: 30px; border-bottom: 2px solid #333; overflow-x: auto; }
+.tab-btn { padding: 12px 20px; background: transparent; border: none; color: #999; cursor: pointer; border-bottom: 3px solid transparent; white-space: nowrap; }
+.tab-btn.active { color: #9E8DA7; border-bottom-color: #9E8DA7; }
+
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+.banner-preview { background: #222; padding: 20px; border-radius: 8px; margin: 20px 0; min-height: 250px; display: flex; align-items: center; justify-content: center; border: 2px solid #333; }
+.banner-text { white-space: pre-wrap; word-wrap: break-word; line-height: 1.6; margin: 20px 0; }
+
+.actions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-top: 30px; }
+.btn-secondary { padding: 12px; background: #333; color: #fff; border: none; border-radius: 8px; cursor: pointer; }
+
+#loginContainer { display: flex; }
+#appContainer { display: none; }
+
+.loading-spinner { display: inline-block; width: 16px; height: 16px; border: 3px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<div id="loginContainer" class="login-container">
+  <div class="login-box">
+    <div class="login-header">
+      <h1>🚀 DIGI</h1>
+      <p>Campaign Generator</p>
+    </div>
+    <div class="login-form">
+      <label>סיסמה:</label>
+      <input type="password" id="passwordInput" placeholder="הקלד סיסמה">
+      <button type="button" onclick="handleLogin()">כניסה</button>
+      <div id="loginError"></div>
+    </div>
+  </div>
+</div>
+
+<div id="appContainer" style="display: none;">
+<div class="container">
+  <div class="header">
+    <h1>🎯 DIGI Campaign Generator</h1>
+    <p>יצור קמפיינים עם באנרים!</p>
+  </div>
+
+  <div class="form-container">
+    <div class="form-row">
+      <div class="form-group">
+        <label>שם לקוח *</label>
+        <input type="text" id="clientName" placeholder="Anjaly...">
+      </div>
+      <div class="form-group">
+        <label>סוג קמפיין *</label>
+        <select id="campaignType">
+          <option value="">-- בחר --</option>
+          <option value="Meta">Meta</option>
+          <option value="Google">Google Ads</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>קהל יעד *</label>
+        <input type="text" id="targetAudience" placeholder="נשים 25-45...">
+      </div>
+      <div class="form-group">
+        <label>מטרה *</label>
+        <select id="campaignGoal">
+          <option value="">-- בחר --</option>
+          <option value="Sales">Sales</option>
+          <option value="Leads">Leads</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="alertMsg" class="alert"></div>
+    <button type="button" class="btn-primary" onclick="generateCampaign()">🚀 יצור קמפיין</button>
+  </div>
+
+  <div class="results" id="results">
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('strategy')">📊 אסטרטגיה</button>
+      <button class="tab-btn" onclick="switchTab('angles')">🎯 זוויות</button>
+      <button class="tab-btn" onclick="switchTab('banners')">🎨 באנרים</button>
+      <button class="tab-btn" onclick="switchTab('scripts')">🎬 סקריפטים</button>
+      <button class="tab-btn" onclick="switchTab('targeting')">🎪 Targeting</button>
+    </div>
+
+    <div id="strategy" class="tab-content active">
+      <div class="banner-text" id="strategyText"></div>
+    </div>
+    <div id="angles" class="tab-content">
+      <div class="banner-text" id="anglesText"></div>
+    </div>
+    <div id="banners" class="tab-content">
+      <div id="bannersContainer"></div>
+    </div>
+    <div id="scripts" class="tab-content">
+      <div class="banner-text" id="scriptsText"></div>
+    </div>
+    <div id="targeting" class="tab-content">
+      <div class="banner-text" id="targetingText"></div>
+    </div>
+
+    <div class="actions">
+      <button class="btn-secondary" onclick="copyTab()">📋 העתק</button>
+      <button class="btn-secondary" onclick="downloadAll()">💾 הורד הכל</button>
+      <button class="btn-secondary" onclick="reset()">🔄 חדש</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<script>
+const CORRECT_PASSWORD = 'DIGIB1970';
+const API_KEY = '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';
+let currentTab = 'strategy';
+let allData = {};
+
+function handleLogin() {
+  if (document.getElementById('passwordInput').value === CORRECT_PASSWORD) {
+    document.getElementById('loginContainer').style.display = 'none';
+    document.getElementById('appContainer').style.display = 'block';
+  } else {
+    document.getElementById('loginError').textContent = '❌ סיסמה לא נכונה';
+    document.getElementById('loginError').style.display = 'block';
+  }
+}
+
+function showAlert(msg, type) {
+  const alert = document.getElementById('alertMsg');
+  alert.textContent = msg;
+  alert.className = `alert ${type}`;
+  alert.style.display = 'block';
+}
+
+async function generateCampaign() {
+  const name = document.getElementById('clientName').value.trim();
+  const type = document.getElementById('campaignType').value;
+  const audience = document.getElementById('targetAudience').value.trim();
+  const goal = document.getElementById('campaignGoal').value;
+
+  if (!name || !type || !audience || !goal) {
+    showAlert('⚠️ מלא את כל השדות', 'error');
+    return;
+  }
+
+  const btn = event.target;
+  btn.disabled = true;
+  btn.innerHTML = '<span class="loading-spinner"></span> מייצר...';
+
+  try {
+    const prompt = `אתה מומחה ליצור קמפיינים. עבור ${name}, ${type}, קהל: ${audience}, מטרה: ${goal}.
+
+כתוב בדיוק כך:
+
+📊 אסטרטגיה
+[כתוב 2 פסקאות]
+
+🎯 זוויות
+1. [זווית 1]
+2. [זווית 2]
+
+🎨 באנרים
+BANNER 1
+Headline: [כתוב כותרת]
+SubText: [תרגום קצר]
+Color: #FF6B6B
+Style: Modern
+
+BANNER 2
+Headline: [כתוב כותרת]
+SubText: [תרגום קצר]
+Color: #4ECDC4
+Style: Minimal
+
+BANNER 3
+Headline: [כתוב כותרת]
+SubText: [תרגום קצר]
+Color: #95E1D3
+Style: Bold
+
+🎬 סקריפטים
+15s: [כתוב סקריפט קצר]
+30s: [כתוב סקריפט ארוך]
+
+🎪 Targeting
+[טווחי גילאים, interests, placements]`;
+
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': API_KEY,
+        'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify({
+        model: 'claude-opus-4-20250514',
+        max_tokens: 3000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    if (!response.ok) throw new Error('API Error');
+
+    const data = await response.json();
+    const content = data.content[0].text;
+
+    // חלץ סקציות
+    allData.strategy = extractSection(content, '📊');
+    allData.angles = extractSection(content, '🎯');
+    allData.banners = extractSection(content, '🎨');
+    allData.scripts = extractSection(content, '🎬');
+    allData.targeting = extractSection(content, '🎪');
+
+    // הצג בטאבים
+    document.getElementById('strategyText').textContent = allData.strategy;
+    document.getElementById('anglesText').textContent = allData.angles;
+    document.getElementById('scriptsText').textContent = allData.scripts;
+    document.getElementById('targetingText').textContent = allData.targeting;
+    
+    // רנדור באנרים
+    renderBanners(allData.banners);
+    
+    document.getElementById('results').classList.add('show');
+    showAlert('✅ בוצע!', 'success');
+  } catch (e) {
+    showAlert(`❌ ${e.message}`, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '🚀 יצור קמפיין';
+  }
+}
+
+function extractSection(text, emoji) {
+  const parts = text.split(emoji);
+  if (parts.length < 2) return '';
+  let section = parts[1];
+  const next = section.search(/[📊🎯🎨🎬🎪]/);
+  if (next !== -1) section = section.substring(0, next);
+  return section.trim();
+}
+
+function renderBanners(bannersText) {
+  const container = document.getElementById('bannersContainer');
+  container.innerHTML = '';
+  
+  const bannerBlocks = bannersText.split('BANNER').filter(b => b.trim());
+  
+  bannerBlocks.forEach((block, i) => {
+    const headline = (block.match(/Headline:\s*([^\n]+)/) || ['', 'בואנו נמכור'])[1];
+    const subtext = (block.match(/SubText:\s*([^\n]+)/) || ['', 'קנה עכשיו'])[1];
+    const color = (block.match(/Color:\s*(#[A-F0-9]{6})/i) || ['', '#9E8DA7'])[1];
+    
+    const bannerHTML = `
+      <div style="background: ${color}; padding: 30px; border-radius: 8px; margin: 20px 0; text-align: center; color: white; min-height: 200px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+        <h2 style="font-size: 32px; margin-bottom: 15px; font-weight: bold;">${headline}</h2>
+        <p style="font-size: 18px; margin-bottom: 20px;">${subtext}</p>
+        <button style="background: white; color: ${color}; border: none; padding: 12px 30px; border-radius: 25px; font-weight: bold; cursor: pointer; font-size: 16px;">לחץ כאן</button>
+      </div>
+      <div style="background: #222; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-size: 12px; color: #999;">
+        <strong>Headline:</strong> ${headline}<br>
+        <strong>Color:</strong> ${color}<br>
+        <strong>Size:</strong> 1200x628px (Facebook)
+      </div>
+    `;
+    
+    container.innerHTML += bannerHTML;
+  });
+}
+
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+  document.getElementById(tab).classList.add('active');
+  if (event?.target) event.target.classList.add('active');
+}
+
+function copyTab() {
+  const text = document.querySelector(`#${currentTab} .banner-text`)?.textContent || 'לא יכול להעתיק';
+  navigator.clipboard.writeText(text);
+  showAlert('✅ הועתק!', 'success');
+}
+
+function downloadAll() {
+  let txt = 'DIGI Campaign\n\n';
+  txt += '=== אסטרטגיה ===\n' + allData.strategy + '\n\n';
+  txt += '=== זוויות ===\n' + allData.angles + '\n\n';
+  txt += '=== באנרים ===\n' + allData.banners + '\n\n';
+  txt += '=== סקריפטים ===\n' + allData.scripts + '\n\n';
+  txt += '=== Targeting ===\n' + allData.targeting;
+  
+  const blob = new Blob([txt], { type: 'text/plain;charset=utf-8' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = 'campaign.txt';
+  link.click();
+}
+
+function reset() {
+  document.getElementById('clientName').value = '';
+  document.getElementById('campaignType').value = '';
+  document.getElementById('targetAudience').value = '';
+  document.getElementById('campaignGoal').value = '';
+  document.getElementById('results').classList.remove('show');
+  document.getElementById('alertMsg').style.display = 'none';
+}
+
+document.getElementById('passwordInput')?.addEventListener('keypress', e => e.key === 'Enter' && handleLogin());
+</script>
+
+</body>
+</html>
